@@ -3,7 +3,7 @@
 /**
  * Skill names, from player's profile.
  */
-const SKILL_NAMES = [
+const ATTRIBUTE_NAMES = [
   // 1st row
   ["reflexes", "tackling", "creativity", "shooting", "teamWork"],
   // 2nd row
@@ -19,8 +19,8 @@ const SKILL_NAMES = [
 /**
  * Defines the player's skills
  */
-interface PlayerSkills {
-  [key: (typeof SKILL_NAMES)[number]]: number;
+interface PlayerAttributes {
+  [key: (typeof ATTRIBUTE_NAMES)[number]]: number;
 }
 
 /**
@@ -112,7 +112,7 @@ interface Player {
     country: string;
     countryCode: string;
   };
-  skills: PlayerSkills;
+  attributes: PlayerAttributes;
   condition: number;
   moral: string;
   weeksAtClub: number;
@@ -176,9 +176,9 @@ const parsePlayer = (doc = document): Player => {
   const skillValueEls = skillsEl.querySelectorAll(
     ".row1 td:nth-child(3n + 2), .row2 td:nth-child(3n + 2)"
   );
-  const skills: PlayerSkills = {};
-  for (let i = 0; i < SKILL_NAMES.length; i++) {
-    const skillName = SKILL_NAMES[i];
+  const skills: PlayerAttributes = {};
+  for (let i = 0; i < ATTRIBUTE_NAMES.length; i++) {
+    const skillName = ATTRIBUTE_NAMES[i];
     skills[skillName] = Number(skillValueEls[i].textContent);
   }
 
@@ -259,7 +259,7 @@ const parsePlayer = (doc = document): Player => {
         .querySelector("img")!
         .src.match(/(?<=flags_small\/new\/)\w+(?=\.png)/)![0],
     },
-    skills: skills,
+    attributes: skills,
     talentReport,
     condition: Number(conditionEl.textContent!.trim().replace("%", "")),
     moral: moralEl.textContent!.trim(),
