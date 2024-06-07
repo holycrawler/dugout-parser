@@ -73,9 +73,9 @@ const parseMatches = (doc: Document) => {
   return matches;
 };
 
-const parceLeague = (doc: Document) => {
+const parseLeague = (doc: Document) => {
   if (!doc) doc = document;
   return { leagueTable: parceLeagueTable(doc), schedule: parseMatches(doc) };
 };
 
-export default parceLeague;
+export default parseLeague;
