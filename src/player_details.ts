@@ -183,7 +183,7 @@ const parsePlayer = (doc = document): Player => {
   }
 
   const [coachesReportTable, scoutReportTable] =
-    document.querySelectorAll("#talentPanel table");
+    doc.querySelectorAll("#talentPanel table");
   const coachesReports = coachesReportTable
     ? [
         ...(coachesReportTable.querySelectorAll(
