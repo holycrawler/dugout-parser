@@ -90,4 +90,4 @@ const parceLeague = (doc: Document) => {
   return { leagueTable: parceLeagueTable(doc), schedule: parseMatches(doc) };
 };
 
-export default { parceLeague };
+export default parceLeague;

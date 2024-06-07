@@ -282,5 +282,5 @@ const parsePlayer = (doc = document): Player => {
   };
 };
 
-export { parsePlayer };
+export default parsePlayer;
 //parsePlayer()

@@ -57,6 +57,4 @@ const parseClubInfo = (doc = document) => {
   };
 };
 
-export default {
-  parseClubInfo,
-};
+export default parseClubInfo;

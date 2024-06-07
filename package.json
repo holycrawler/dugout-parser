@@ -1,5 +1,5 @@
 {
-  "name": "@do-tools/parser2",
+  "name": "dugout-parser",
   "version": "1.0.0",
   "description": "Module for parsing different components of DO (originaly developped by DFA1)",
   "type": "module",
