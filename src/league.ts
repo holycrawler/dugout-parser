@@ -55,27 +55,15 @@ const parseMatches = (doc: Document) => {
       const parcedLine = {
         homeTeam: {
           name: anchors[0].textContent!.trim(),
-          id: Number(
-            anchors[0].href.split("/")[
-              anchors[0].href.split("/").indexOf("clubid") + 1
-            ]
-          ),
+          id: Number(anchors[0].href.match(/clubid\/(\d+)/)![1]),
         },
         awayTeam: {
           name: anchors[2].textContent!.trim(),
-          id: Number(
-            anchors[2].href.split("/")[
-              anchors[2].href.split("/").indexOf("clubid") + 1
-            ]
-          ),
+          id: Number(anchors[2].href.match(/clubid\/(\d+)/)![1]),
         },
         game: {
           score: anchors[1].textContent!.trim(),
-          id: Number(
-            anchors[1].href.split("/")[
-              anchors[1].href.split("/").indexOf("gameid") + 1
-            ]
-          ),
+          id: Number(anchors[1].href.match(/clubid\/(\d+)/)![1]),
         },
       };
       return parcedLine;
