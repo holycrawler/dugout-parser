@@ -63,7 +63,7 @@ const parseMatches = (doc: Document) => {
         },
         game: {
           score: anchors[1].textContent!.trim(),
-          id: Number(anchors[1].href.match(/clubid\/(\d+)/)![1]),
+          id: Number(anchors[1].href.match(/gameid\/(\d+)/)![1]),
         },
       };
       return parcedLine;
