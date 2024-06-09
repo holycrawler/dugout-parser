@@ -1,6 +1,6 @@
 {
   "name": "dugout-parser",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Module for parsing different components of DO (originaly developped by DFA1)",
   "type": "module",
   "main": "dist/index.js",
