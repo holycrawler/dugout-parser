@@ -91,7 +91,7 @@ interface Matches {
   matches: {
     home: { name: string; id: number };
     away: { name: string; id: number };
-    game: { score: string; id: number };
+    game: { score: string | null; id: number };
   }[];
 }
 /**
@@ -105,6 +105,7 @@ const parseMatches = (doc: Document = document): Matches[] => {
   return gamesTables.map((table, index) => {
     const parsedTable = [...table.querySelectorAll("tr")].map((e) => {
       const anchors = e.querySelectorAll("a");
+      const score = anchors[1].textContent!.trim();
       const parsedLine = {
         home: {
           name: anchors[0].textContent!.trim(),
@@ -115,7 +116,7 @@ const parseMatches = (doc: Document = document): Matches[] => {
           id: Number(anchors[2].href.match(/clubid\/(\d+)/)![1]),
         },
         game: {
-          score: anchors[1].textContent!.trim(),
+          score: score === "vs." ? null : score,
           id: Number(anchors[1].href.match(/gameid\/(\d+)/)![1]),
         },
       };
