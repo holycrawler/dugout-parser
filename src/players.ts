@@ -1,3 +1,6 @@
+/**
+ * Attribute names, from player's profile.
+ */
 const ATTRIBUTE_NAMES = [
   // 1st row
   ["reflexes", "tackling", "creativity", "shooting", "teamWork"],
@@ -10,19 +13,57 @@ const ATTRIBUTE_NAMES = [
   // 5th row
   ["eccentricity"],
 ].flat(1);
-
+/**
++ * Interface that defines the attributes of a player.
++ * The keys are the names of the attributes, which are defined in the `ATTRIBUTE_NAMES` constant.
++ * The values are the player's attributes, as numbers.
++ */
 interface PlayersAttributes {
   [key: (typeof ATTRIBUTE_NAMES)[number]]: number;
 }
-const parsePlayerTables = (doc = document) => {
+
+/**
+ * Interface that defines the attributes of a player.
+ * The keys are the names of the attributes, which are defined in the `ATTRIBUTE_NAMES` constant.
+ * The values are the player's attributes, as numbers.
+ */
+interface Player {
+  position: string;
+  nationalTeam: string | null;
+  name: string;
+  transferListed: boolean;
+  bidStarted: boolean;
+  injured: boolean;
+  redCard: boolean;
+  onLoan: boolean;
+  loanedOut: boolean;
+  id: number;
+  age: number;
+  country: { name: string; code: string };
+  rating: number;
+  attributes: PlayersAttributes | null;
+}
+
+/**
+ * Parses the player tables on club players page returns an array of player objects.
+ * @param {Document} [doc=document] players page document. defaults to current document if not passed
+ * @returns {Player[]} An array of player objects @see {@link Player}.
+ */
+const parsePlayerTables = (doc = document): Player[] => {
+  // Get all player tables on the page. GOALKEEPERS / DEFENDERS / MIDFIELDERS / ATTACKERS
   const playerTables = [
     ...(doc.querySelectorAll(
       "table.forumline"
     ) as NodeListOf<HTMLTableElement>),
   ];
-  const isOwnTeam =
-    doc.querySelector("div#top_positions")!.childElementCount > 0 ? 1 : 0; // equals 1 if its own team 0 if not (to account for diffrecnt cell indexs on the player page)
 
+  // check if the current page is the player page of the user's own team
+  // all the cells are increased by 1 if the user is on their own team
+  // the reason for this is that on the user own the first cell is used for active position(setting tactics)
+  const isOwnTeam =
+    doc.querySelector("div#top_positions")!.childElementCount > 0 ? 1 : 0;
+
+  // Parse each player table and return an array of player objects
   return playerTables
     .map((table) => {
       return [
@@ -84,14 +125,14 @@ const parsePlayerTables = (doc = document) => {
           loanedOut,
           id: playerID,
           age: Number(playerAgeEl.textContent!.trim()),
-          nationality: (playerNatEl.firstElementChild as HTMLImageElement)
-            .title,
-          nationalityCode: (
-            playerNatEl.firstElementChild as HTMLImageElement
-          ).src.match(/(?<=flags_small\/new\/)\w+(?=\.png)/)![0],
-
+          country: {
+            name: (playerNatEl.firstElementChild as HTMLImageElement).title,
+            code: (playerNatEl.firstElementChild as HTMLImageElement).src.match(
+              /(?<=flags_small\/new\/)\w+(?=\.png)/
+            )![0],
+          },
           rating: Number(playerRatEl.textContent!.trim()),
-          attributes: loanedOut ? null : attributesObject,
+          attributes: loanedOut ? null : attributesObject, // we check if loadedout because the attribues table isnt availble for loaned players for some reason
         };
       });
     })

@@ -1,28 +1,75 @@
-const parceLeagueTable = (doc = document) => {
-  const parcedTable = [];
+/**
+ * the league table from league page.
+ */
+interface LeagueTable {
+  pos: number;
+  teamName: string;
+  teamId: number;
+  pl: number;
+  w: number;
+  d: number;
+  l: number;
+  f: number;
+  a: number;
+  pts: number;
+}
+
+/**
+ * Parses the league table from the league page.
+ * @param {Document} [doc=document] - The document to parse, defalts to the current document if not passed.
+ * @returns {LeagueTable[]} - The parsed league table.
+ */
+const parceLeagueTable = (doc: Document = document): LeagueTable[] => {
+  const parcedTable: LeagueTable[] = [];
   const leagueTable = doc.querySelector("table#myTable") as HTMLTableElement;
   for (let i = 1; i < leagueTable.rows.length; i++) {
     const rows = leagueTable.querySelectorAll("tr");
     const cells = rows[i].querySelectorAll("td")!;
     parcedTable.push({
-      POS: Number(cells[0].textContent!.trim()),
-      TEAM: {
-        name: cells[1].textContent!.trim(),
-        URL: (cells[1].firstElementChild as HTMLAnchorElement).href,
-      },
-      PL: Number(cells[3].textContent!.trim()),
-      W: Number(cells[4].textContent!.trim()),
-      D: Number(cells[5].textContent!.trim()),
-      L: Number(cells[6].textContent!.trim()),
-      F: Number(cells[7].textContent!.trim()),
-      A: Number(cells[8].textContent!.trim()),
-      PTS: Number(cells[9].textContent!.trim()),
+      /** The position of the team in the league table. */
+      pos: Number(cells[0].textContent!.trim()),
+      /** The name of the team. */
+      teamName: cells[1].textContent!.trim(),
+      /** The ID of the team. */
+      teamId: Number(
+        (cells[1].firstElementChild as HTMLAnchorElement).href.match(
+          /clubid\/(\d+)/
+        )![1]
+      ),
+      /** The number of played matches. */
+      pl: Number(cells[3].textContent!.trim()),
+      /** The number of wins. */
+      w: Number(cells[4].textContent!.trim()),
+      /** The number of draws. */
+      d: Number(cells[5].textContent!.trim()),
+      /** The number of losses. */
+      l: Number(cells[6].textContent!.trim()),
+      /** The number of goals scored. */
+      f: Number(cells[7].textContent!.trim()),
+      /** The number of goals conceded. */
+      a: Number(cells[8].textContent!.trim()),
+      /** The number of points. */
+      pts: Number(cells[9].textContent!.trim()),
     });
   }
   return parcedTable;
 };
-const parseMatchTablehead = (doc: Document) => {
-  if (!doc) doc = document;
+
+interface MatchTablehead {
+  number: number; // round number
+  time: {
+    date: string; // the format will depend your dugout settings but default is "dd.mm.yyyy"
+    time: string; // hh:mm
+  };
+}
+
+/**
+ * Parses the table head of a match and returns an array of MatchTablehead objects.
+ *
+ * @param {Document} [doc=document] - The document to parse, defaults to the current document if not passed.
+ * @return {MatchTablehead[]} - An array of MatchTablehead objects.
+ */
+const parseMatchTablehead = (doc: Document = document): MatchTablehead[] => {
   const tableHeads = [...doc.querySelectorAll("div.cup_title")].map((th) =>
     th.textContent!.trim()
   );
@@ -37,27 +84,33 @@ const parseMatchTablehead = (doc: Document) => {
     };
   });
 };
-const parseMatches = (doc: Document) => {
-  if (!doc) doc = document;
-  const matches: {
-    round: { number: number; time: { date: string; time: string } };
-    matches: {
-      homeTeam: { name: string; id: number };
-      awayTeam: { name: string; id: number };
-      game: { score: string; id: number };
-    }[];
-  }[] = [];
+
+interface Matches {
+  round: MatchTablehead;
+  matches: {
+    home: { name: string; id: number };
+    away: { name: string; id: number };
+    game: { score: string; id: number };
+  }[];
+}
+/**
+ * parses the matches bellow the league table in competition page
+ * @param {Document} [doc=document] - The document to parse from, defaults to the current document if not passed.
+ * @returns {Matches[]} - The parsed matches
+ */
+const parseMatches = (doc: Document = document): Matches[] => {
+  const matches: Matches[] = [];
   const gamesTables = doc.querySelectorAll("div.cup_title + div>table");
   const tableHeads = parseMatchTablehead(doc);
   gamesTables.forEach((table, index) => {
-    const parcedTable = [...table.querySelectorAll("tr")].map((e) => {
+    const parsedTable = [...table.querySelectorAll("tr")].map((e) => {
       const anchors = e.querySelectorAll("a");
-      const parcedLine = {
-        homeTeam: {
+      const parsedLine = {
+        home: {
           name: anchors[0].textContent!.trim(),
           id: Number(anchors[0].href.match(/clubid\/(\d+)/)![1]),
         },
-        awayTeam: {
+        away: {
           name: anchors[2].textContent!.trim(),
           id: Number(anchors[2].href.match(/clubid\/(\d+)/)![1]),
         },
@@ -66,16 +119,29 @@ const parseMatches = (doc: Document) => {
           id: Number(anchors[1].href.match(/gameid\/(\d+)/)![1]),
         },
       };
-      return parcedLine;
+      return parsedLine;
     });
-    matches.push({ round: tableHeads[index], matches: parcedTable });
+    matches.push({ round: tableHeads[index], matches: parsedTable });
   });
   return matches;
 };
 
-const parseLeague = (doc: Document) => {
-  if (!doc) doc = document;
-  return { leagueTable: parceLeagueTable(doc), schedule: parseMatches(doc) };
+interface League {
+  leagueTable: LeagueTable[];
+  matches: Matches[];
+}
+
+/**
+ * Parses the league page and returns an object containing the league table and matches for that round.
+ *
+ * @param {Document} [doc=document] - The document to parse from, defaults to the current document if not passed.
+ * @return {League} - An object containing the league table and round matches.
+ */
+const parseLeague = (doc: Document = document): League => {
+  return {
+    leagueTable: parceLeagueTable(doc),
+    matches: parseMatches(doc),
+  };
 };
 
 export default parseLeague;
