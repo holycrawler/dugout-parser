@@ -56,11 +56,9 @@ const parceLeagueTable = (doc: Document = document): LeagueTable[] => {
 };
 
 interface MatchTablehead {
-  number: number; // round number
-  time: {
-    date: string; // the format will depend your dugout settings but default is "dd.mm.yyyy"
-    time: string; // hh:mm
-  };
+  round: number; // round number
+  date: string; // the format will depend your dugout settings but default is "dd.mm.yyyy"
+  time: string; // hh:mm
 }
 
 /**
@@ -79,14 +77,17 @@ const parseMatchTablehead = (doc: Document = document): MatchTablehead[] => {
     const matchDateTime = match![2];
     const matchTime = match![3];
     return {
-      number: Number(roundNumber),
-      time: { date: matchDateTime, time: matchTime },
+      round: Number(roundNumber),
+      date: matchDateTime,
+      time: matchTime,
     };
   });
 };
 
 interface Matches {
-  round: MatchTablehead;
+  round: number; // round number
+  date: string; // the format will depend your dugout settings but default is "dd.mm.yyyy"
+  time: string; // hh:mm
   matches: {
     home: { name: string; id: number };
     away: { name: string; id: number };
@@ -99,10 +100,9 @@ interface Matches {
  * @returns {Matches[]} - The parsed matches
  */
 const parseMatches = (doc: Document = document): Matches[] => {
-  const matches: Matches[] = [];
-  const gamesTables = doc.querySelectorAll("div.cup_title + div>table");
+  const [...gamesTables] = doc.querySelectorAll("div.cup_title + div>table");
   const tableHeads = parseMatchTablehead(doc);
-  gamesTables.forEach((table, index) => {
+  return gamesTables.map((table, index) => {
     const parsedTable = [...table.querySelectorAll("tr")].map((e) => {
       const anchors = e.querySelectorAll("a");
       const parsedLine = {
@@ -121,14 +121,13 @@ const parseMatches = (doc: Document = document): Matches[] => {
       };
       return parsedLine;
     });
-    matches.push({ round: tableHeads[index], matches: parsedTable });
+    return { ...tableHeads[index], matches: parsedTable };
   });
-  return matches;
 };
 
 interface League {
   leagueTable: LeagueTable[];
-  matches: Matches[];
+  RoundMatches: Matches[];
 }
 
 /**
@@ -140,7 +139,7 @@ interface League {
 const parseLeague = (doc: Document = document): League => {
   return {
     leagueTable: parceLeagueTable(doc),
-    matches: parseMatches(doc),
+    RoundMatches: parseMatches(doc),
   };
 };
 
