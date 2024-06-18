@@ -27,7 +27,7 @@ interface PlayersAttributes {
  * The keys are the names of the attributes, which are defined in the `ATTRIBUTE_NAMES` constant.
  * The values are the player's attributes, as numbers.
  */
-interface Player {
+export interface Player {
   position: string;
   nationalTeam: string | null;
   name: string;
@@ -49,7 +49,7 @@ interface Player {
  * @param {Document} [doc=document] players page document. defaults to current document if not passed
  * @returns {Player[]} An array of player objects @see {@link Player}.
  */
-const parsePlayerTables = (doc = document): Player[] => {
+export const parsePlayerTables = (doc = document): Player[] => {
   // Get all player tables on the page. GOALKEEPERS / DEFENDERS / MIDFIELDERS / ATTACKERS
   const playerTables = [
     ...(doc.querySelectorAll(
@@ -140,4 +140,3 @@ const parsePlayerTables = (doc = document): Player[] => {
 };
 
 //parsePlayerTables()
-export default parsePlayerTables;

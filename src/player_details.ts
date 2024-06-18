@@ -259,7 +259,7 @@ function parseTalentReport(talentEl: Element): TalentReport {
 /**
  * Defines the player profile.
  */
-interface Player {
+export interface PlayerDetails {
   id: number;
   name: string;
   age: number;
@@ -270,7 +270,6 @@ interface Player {
   club: {
     id: number;
     name: string;
-    url: string;
     country: {
       code: string;
       name: string;
@@ -296,9 +295,9 @@ interface Player {
  * Parses player's data from an individual player's page.
  * @param doc - The document containing the player's data.
  * @return returns an object of all the player's details
- * @see Player
+ * @see PlayerDetails
  */
-const parsePlayer = (doc: Document = document): Player => {
+export const parsePlayer = (doc: Document = document): PlayerDetails => {
   /*
    * Get the player's page main elements by selecting the div siblings of #main-1 (which is actually the skillsEl).
    * Note that some div siblings are ignored, hence the extra commas in below destructuring.
@@ -374,7 +373,6 @@ const parsePlayer = (doc: Document = document): Player => {
     club: {
       id: Number(clubLinkEl.href.replace(/\D/g, "")),
       name: clubLinkEl.textContent!,
-      url: clubLinkEl.href,
       country: {
         code: clubCountryEl
           .querySelector("img")!
@@ -405,7 +403,5 @@ const parsePlayer = (doc: Document = document): Player => {
       .filter((trait) => trait.includes(name.replace(/\s\S+$/, ""))),
   };
 };
-
-export default parsePlayer;
 
 //parsePlayer()

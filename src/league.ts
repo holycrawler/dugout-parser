@@ -126,7 +126,7 @@ const parseMatches = (doc: Document = document): Matches[] => {
   });
 };
 
-interface League {
+export interface League {
   leagueTable: LeagueTable[];
   RoundMatches: Matches[];
 }
@@ -137,11 +137,9 @@ interface League {
  * @param {Document} [doc=document] - The document to parse from, defaults to the current document if not passed.
  * @return {League} - An object containing the league table and round matches.
  */
-const parseLeague = (doc: Document = document): League => {
+export const parseLeague = (doc: Document = document): League => {
   return {
     leagueTable: parceLeagueTable(doc),
     RoundMatches: parseMatches(doc),
   };
 };
-
-export default parseLeague;

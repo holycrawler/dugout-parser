@@ -1,4 +1,4 @@
-interface ClubInfo {
+export interface ClubInfo {
   id: number;
   teamName: string;
   shortName: string;
@@ -35,7 +35,7 @@ interface ClubInfo {
  * @param {Document} [doc=document] - The document to parse. Defaults to the current document.
  * @returns {ClubInfo} - The parsed club info.
  */
-const parseClubInfo = (doc: Document = document): ClubInfo => {
+export const parseClubInfo = (doc: Document = document): ClubInfo => {
   // Select the image element representing the club's flag
   const flagEl = doc.querySelector(
     "img[src*='images/flags_round']"
@@ -130,5 +130,3 @@ const parseClubInfo = (doc: Document = document): ClubInfo => {
     },
   };
 };
-
-export default parseClubInfo;
