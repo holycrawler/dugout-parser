@@ -1,4 +1,4 @@
-// TODO maybe move types to a separate package?
+// TODO : fix coachreport selector  (?)
 
 /**
  * Attribute names, from player's profile.
@@ -24,28 +24,22 @@ const ATTRIBUTE_NAMES = [
 interface PlayerAttributes {
   [key: (typeof ATTRIBUTE_NAMES)[number]]: number;
 }
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+interface CoachReport {
+  coach: string;
+  numberOfReports: number;
+  jpt: number | null; // null if caoch is retired
+  average: number;
+}
+interface ScoutReport {
+  scoutType: string;
+  numberOfReports: number;
+  average: number;
+}
 interface TalentReport {
-  /**
-   * The average talent of the player, or null if not available.
-   */
-  averageTalent: number | null;
-
-  /**
-   * An array of coach reports, or null if not available. Each report contains the following properties:
-   * - coachName: The name of the coach.
-   * - numberOfReports: The number of reports by the coach.
-   * - jpt: The JPT of the coach.
-   * - stars: The number of stars.
-   */
+  average: number | null;
   coachesReports: CoachReport[] | null;
-
-  /**
-   * An array of scout reports, or null if not available. Each report contains the following properties:
-   * - scoutType: The type of scout.
-   * - numberOfReports: The number of reports by the scout.
-   * - stars: The number of stars.
-   */
   scoutReports: ScoutReport[] | null;
 }
 
@@ -112,13 +106,55 @@ const getPosition = (positionsEl: Element): Position => {
   // Look up the corresponding position in the POSITION_COORDS object
   return POSITION_COORDS[coords];
 };
+const getNumberOfStars = (starEl: Element) => {
+  const starEls = starEl.querySelectorAll(":scope > li.fa-star") || [];
+  const starHalfEls =
+    starEl.querySelectorAll(":scope > li.fa-star-half-o") || [];
+  const starCount = starEls.length;
+  const starHalfCount = starHalfEls.length;
+  const totalStars = starCount + starHalfCount / 2;
+  return totalStars;
+};
 
-interface CoachReport {
-  coachName: string;
-  numberOfReports: number;
-  jpt: number;
-  stars: number;
-}
+// const parseScoutReport = (table: HTMLTableElement) => {
+//   const rowsArr = [...table.rows];
+//   return rowsArr.map((row) => {
+//     const cells = row.cells;
+//     const [scoutEl, starEl] = cells;
+//     const stars = getNumberOfStars(starEl);
+//     const [, scoutType, reportsString] = scoutEl
+//       .textContent!.trim()
+//       .match(/^(.*?)\s*\((\d+)\s*[^\)]+\)$/)!;
+//     const numberOfReports = Number(reportsString);
+//     return {
+//       scoutType,
+//       numberOfReports,
+//       stars,
+//     }! as ScoutReport;
+//   });
+// };
+// const parseCoachReport = (table: HTMLTableElement) => {
+//   const rowsArr = [...table.rows];
+//   return rowsArr.map((row) => {
+//     const cells = row.cells;
+//     const [coachNameEl, jptEl, starEl] = cells;
+//     const stars = getNumberOfStars(starEl);
+//     const [, coachName, reportsString] = coachNameEl
+//       .textContent!.trim()
+//       .match(/^(.*?)\s*\((\d+)\s*[^\)]+\)$/)!;
+//     const numberOfReports = Number(reportsString);
+//     const jpt =
+//       jptEl.textContent!.trim() === "n/a"
+//         ? null
+//         : Number(jptEl.textContent!.trim());
+//     return {
+//       coachName,
+//       numberOfReports,
+//       jpt,
+//       stars,
+//     }! as CoachReport;
+//   });
+// };
 
 /**
  * Retrieves the coach reports from the given table element.
@@ -136,46 +172,25 @@ function getCoachReports(
       "tr[class*=row]"
     ) as NodeListOf<HTMLTableRowElement>),
   ].map((e: HTMLTableRowElement) => {
-    const cells = e.cells;
-    const stars =
-      cells[2].querySelectorAll("li.fa-star").length +
-      cells[2].querySelectorAll("li.fa-star-half-o").length / 2;
-    const coachInfoMatch = cells[0]
+    const [coachNameEl, jptEl, starEl] = e.cells;
+    const stars = getNumberOfStars(starEl);
+    const [, coachName, reportsString] = coachNameEl
       .textContent!.trim()
       .match(/^(.*?)\s*\((\d+)\s*[^\)]+\)$/)!;
-
+    const numberOfReports = Number(reportsString);
+    const jpt =
+      jptEl.textContent!.trim() === "n/a"
+        ? null
+        : Number(jptEl.textContent!.trim());
     return {
-      coachName: coachInfoMatch[1],
-      numberOfReports: Number(coachInfoMatch[2]),
-      jpt: Number(cells[1].textContent!.trim()),
-      stars: stars,
+      coach: coachName,
+      numberOfReports,
+      jpt,
+      average: stars,
     } as CoachReport;
   });
 }
 
-/**
- * Calculates the average talent based on the given element.
- *
- * @param talentEl - The element containing the coach reports.
- * @returns The average talent as a number.
- */
-function getAverageTalent(talentEl: Element | null): number | null {
-  const starEls =
-    talentEl?.querySelectorAll(":scope > li.coach_star.fa-star") || [];
-  const starHalfEls =
-    talentEl?.querySelectorAll(":scope > li.coach_star.fa-star-half-o") || [];
-
-  const starCount = starEls.length;
-  const starHalfCount = starHalfEls.length;
-  const totalStars = starCount + starHalfCount / 2;
-
-  return totalStars > 0 ? totalStars : null;
-}
-interface ScoutReport {
-  scoutType: string;
-  numberOfReports: number;
-  stars: number;
-}
 /**
  * Extracts scout reports from the given table.
  *
@@ -192,22 +207,55 @@ function getScoutReports(
       "tr[class*=row]"
     ) as NodeListOf<HTMLTableRowElement>),
   ].map((e) => {
-    const cells = e.cells;
-    const stars =
-      cells[1].querySelectorAll("li.fa-star").length +
-      cells[1].querySelectorAll("li.fa-star-half-o").length / 2;
-
-    const scoutInfoMatch = cells[0]
+    const [scoutEl, starEl] = e.cells;
+    const stars = getNumberOfStars(starEl);
+    const [, scoutType, reportsString] = scoutEl
       .textContent!.trim()
       .match(/^(.*?)\s*\((\d+)\s*[^\)]+\)$/)!;
-
+    const numberOfReports = Number(reportsString);
     return {
-      scoutType: scoutInfoMatch[1],
-      numberOfReports: Number(scoutInfoMatch[2]),
-      stars: stars,
+      scoutType,
+      numberOfReports,
+      average: stars,
     } as ScoutReport;
   });
 }
+
+/**
+ * Parses the talent report from the given element.
+ *
+ * @param talentEl - The element containing the talent report.
+ * @returns The parsed talent report
+ * @see TalentReport
+ */
+function parseTalentReport(talentEl: Element): TalentReport {
+  const numberOfStars = getNumberOfStars(talentEl);
+  if (numberOfStars === 0) {
+    return {
+      average: null,
+      coachesReports: null,
+      scoutReports: null,
+    };
+  }
+
+  const [table1, table2] = [
+    ...talentEl.querySelectorAll("#talentPanel table"),
+  ] as HTMLTableElement[];
+
+  // incase table1 is scout table2 will always be null because coach table is always first when available
+  // idk if this is the best way to do it
+  const isScout = table1?.querySelectorAll("tr:first-child>td").length === 2;
+  const [scoutReportTable, coachReportTable] = isScout
+    ? [table1, table2]
+    : [table2, table1];
+
+  return {
+    average: numberOfStars,
+    coachesReports: getCoachReports(coachReportTable),
+    scoutReports: getScoutReports(scoutReportTable),
+  };
+}
+
 /**
  * Defines the player profile.
  */
@@ -238,8 +286,8 @@ interface Player {
   talentReport: TalentReport;
   experience: number;
   position: Position;
-  contract: number;
-  wage: number;
+  contract: number | null;
+  wage: number | null;
   estimatedValue: number;
   personalities: string[];
 }
@@ -289,6 +337,9 @@ const parsePlayer = (doc: Document = document): Player => {
   const [, contractEl, , wageEl, , estimatedValueEl] = economicsEl
     .querySelector("table")!
     .querySelectorAll(":scope>tbody>tr[class*=row]>td");
+  const hasContract = contractEl.textContent!.trim() !== "/";
+  const contract = hasContract ? Number(contractEl.textContent!.trim()) : null;
+  const wage = hasContract ? Number(wageEl.textContent!.trim()) : null;
 
   const name = nameEl.textContent!;
   // we are selecting 3n + 2 because each skill is a trio of skill name(1), skill value(2) and a up/down/same image(3)
@@ -301,18 +352,7 @@ const parsePlayer = (doc: Document = document): Player => {
     attributes[attributeName] = Number(skillValueEls[i].textContent);
   }
 
-  const [coachesReportTable, scoutReportTable] = doc.querySelectorAll(
-    "#talentPanel table"
-  ) as NodeListOf<HTMLTableElement>;
-
-  const coachesReports = getCoachReports(coachesReportTable);
-  const scoutReports = getScoutReports(scoutReportTable);
-  const averageTalent = getAverageTalent(talentEl);
-  const talentReport = {
-    averageTalent,
-    coachesReports,
-    scoutReports,
-  };
+  const talentReport = parseTalentReport(talentEl);
 
   const formHistoryString = (
     doc.querySelector("img[src*=form_history]") as HTMLImageElement
@@ -354,8 +394,8 @@ const parsePlayer = (doc: Document = document): Player => {
       (expEl.firstElementChild as HTMLImageElement).title.replace(/\D+/g, "")
     ),
     position: getPosition(positionsEl),
-    contract: Number(contractEl.textContent!.trim().replace(/\D+/g, "")),
-    wage: Number(wageEl.textContent!.trim().replace(/\D+/g, "")),
+    contract,
+    wage,
     estimatedValue: Number(
       estimatedValueEl.textContent!.trim().replace(/\D+/g, "")
     ),
