@@ -163,9 +163,9 @@ const getNumberOfStars = (starEl: Element) => {
  * @returns An array of coach reports or null if the table element is null.
  * @see CoachReport
  */
-function getCoachReports(
+const getCoachReports = (
   tableEl: HTMLTableElement | null
-): CoachReport[] | null {
+): CoachReport[] | null => {
   if (!tableEl) return null;
   return [
     ...(tableEl.querySelectorAll(
@@ -189,7 +189,7 @@ function getCoachReports(
       average: stars,
     } as CoachReport;
   });
-}
+};
 
 /**
  * Extracts scout reports from the given table.
@@ -198,9 +198,9 @@ function getCoachReports(
  * @returns An array of scout reports objects or null if the table is not found.
  * @see ScoutReport
  */
-function getScoutReports(
+const getScoutReports = (
   scoutReportTable: HTMLTableElement | null
-): ScoutReport[] | null {
+): ScoutReport[] | null => {
   if (!scoutReportTable) return null;
   return [
     ...(scoutReportTable.querySelectorAll(
@@ -219,7 +219,7 @@ function getScoutReports(
       average: stars,
     } as ScoutReport;
   });
-}
+};
 
 /**
  * Parses the talent report from the given element.
@@ -228,7 +228,7 @@ function getScoutReports(
  * @returns The parsed talent report
  * @see TalentReport
  */
-function parseTalentReport(talentEl: Element): TalentReport {
+const parseTalentReport = (talentEl: Element): TalentReport => {
   const numberOfStars = getNumberOfStars(talentEl);
   if (numberOfStars === 0) {
     return {
@@ -254,7 +254,7 @@ function parseTalentReport(talentEl: Element): TalentReport {
     coachesReports: getCoachReports(coachReportTable),
     scoutReports: getScoutReports(scoutReportTable),
   };
-}
+};
 
 /**
  * Defines the player profile.
