@@ -33,7 +33,7 @@ interface CoachReport {
   average: number;
 }
 interface ScoutReport {
-  scoutType: string;
+  scout: string;
   numberOfReports: number;
   average: number;
 }
@@ -214,7 +214,7 @@ function getScoutReports(
       .match(/^(.*?)\s*\((\d+)\s*[^\)]+\)$/)!;
     const numberOfReports = Number(reportsString);
     return {
-      scoutType,
+      scout: scoutType,
       numberOfReports,
       average: stars,
     } as ScoutReport;
