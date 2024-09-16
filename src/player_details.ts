@@ -337,7 +337,9 @@ export const parsePlayer = (doc: Document = document): PlayerDetails => {
     .querySelector("table")!
     .querySelectorAll(":scope>tbody>tr[class*=row]>td");
   const hasContract = contractEl.textContent!.trim() !== "/";
-  const contract = hasContract ? Number(contractEl.textContent!.trim()) : null;
+  const contract = hasContract
+    ? Number(contractEl.textContent!.trim()) || 1 // 1 in case "Until the end of the season"
+    : null;
   const wage = hasContract ? Number(wageEl.textContent!.trim()) : null;
 
   const name = nameEl.textContent!;

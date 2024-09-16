@@ -42,6 +42,7 @@ export interface Player {
   country: { name: string; code: string };
   rating: number;
   attributes: PlayersAttributes | null;
+  tableRow: HTMLTableRowElement;
 }
 
 /**
@@ -133,6 +134,7 @@ export const parsePlayerTables = (doc = document): Player[] => {
           },
           rating: Number(playerRatEl.textContent!.trim()),
           attributes: loanedOut ? null : attributesObject, // we check if loadedout because the attribues table isnt availble for loaned players for some reason
+          tableRow: tr,
         };
       });
     })
