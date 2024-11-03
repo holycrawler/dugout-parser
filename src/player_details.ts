@@ -255,7 +255,14 @@ const parseTalentReport = (talentEl: Element): TalentReport => {
     scoutReports: getScoutReports(scoutReportTable),
   };
 };
-
+interface Club {
+  id: number;
+  name: string;
+  country: {
+    code: string;
+    name: string;
+  };
+}
 /**
  * Defines the player profile.
  */
@@ -267,14 +274,7 @@ export interface PlayerDetails {
     code: string;
     name: string;
   };
-  club: {
-    id: number;
-    name: string;
-    country: {
-      code: string;
-      name: string;
-    };
-  };
+  club: Club | null;
   attributes: PlayerAttributes;
   condition: number;
   moral: string;
@@ -297,14 +297,17 @@ export interface PlayerDetails {
  * @return returns an object of all the player's details
  * @see PlayerDetails
  */
-export const parsePlayer = (doc: Document = document): PlayerDetails => {
+export const parsePlayer = (doc: Document = document): PlayerDetails | null => {
   /*
    * Get the player's page main elements by selecting the div siblings of #main-1 (which is actually the skillsEl).
    * Note that some div siblings are ignored, hence the extra commas in below destructuring.
    */
-  const [headerEl, , bioEl, basicEl, mainEl] = doc
-    .querySelector("#main-1")!
-    .parentNode!.querySelectorAll(":scope > div");
+  const mainDivEl = doc.querySelector("#main-1");
+  if (!mainDivEl) {
+    return null;
+  }
+  const [headerEl, , bioEl, basicEl, mainEl] =
+    mainDivEl!.parentNode!.querySelectorAll(":scope > div");
   const [idEl, countryEl, nameEl] = headerEl.querySelectorAll(
     ":scope .player_id_txt,img,.player_name"
   );
@@ -336,13 +339,28 @@ export const parsePlayer = (doc: Document = document): PlayerDetails => {
   const [, contractEl, , wageEl, , estimatedValueEl] = economicsEl
     .querySelector("table")!
     .querySelectorAll(":scope>tbody>tr[class*=row]>td");
+  const hasTeam = clubLinkEl.tagName.toLowerCase() === "a";
   const hasContract = contractEl.textContent!.trim() !== "/";
   const contract = hasContract
     ? Number(contractEl.textContent!.trim()) || 1 // 1 in case "Until the end of the season"
     : null;
-  const wage = hasContract ? Number(wageEl.textContent!.trim()) : null;
+  const wage = hasContract
+    ? Number(wageEl.textContent!.replace(/\D+/g, ""))
+    : null;
 
   const name = nameEl.textContent!;
+  const club = hasTeam
+    ? {
+        id: Number(clubLinkEl.href.replace(/\D/g, "")),
+        name: clubLinkEl.textContent!,
+        country: {
+          code: clubCountryEl
+            .querySelector("img")!
+            .src.match(/(?<=flags_small\/new\/)\w+(?=\.png)/)![0],
+          name: clubCountryEl.querySelector("img")!.title,
+        },
+      }
+    : null;
   // we are selecting 3n + 2 because each skill is a trio of skill name(1), skill value(2) and a up/down/same image(3)
   const skillValueEls = skillsEl.querySelectorAll(
     ".row1 td:nth-child(3n + 2), .row2 td:nth-child(3n + 2)"
@@ -372,16 +390,7 @@ export const parsePlayer = (doc: Document = document): PlayerDetails => {
       )![0],
       name: (countryEl as HTMLImageElement).title,
     },
-    club: {
-      id: Number(clubLinkEl.href.replace(/\D/g, "")),
-      name: clubLinkEl.textContent!,
-      country: {
-        code: clubCountryEl
-          .querySelector("img")!
-          .src.match(/(?<=flags_small\/new\/)\w+(?=\.png)/)![0],
-        name: clubCountryEl.querySelector("img")!.title,
-      },
-    },
+    club,
     attributes,
     talentReport,
     condition: Number(conditionEl.textContent!.trim().replace("%", "")),
